@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
 import Shell from "@/components/Shell";
+import { missingEnv } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import type { Profile } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  if (missingEnv().length) redirect("/setup");
   const supabase = createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { missingEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
@@ -19,11 +20,13 @@ const createSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  if (missingEnv().length) return NextResponse.json({ error: "Server is not configured (missing Supabase environment variables)" }, { status: 503 });
   if (!(await requireSuperAdmin())) return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   const parsed = createSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
   const { email, password, full_name, role } = parsed.data;
-  const admin = createAdminClient();
+  let admin: ReturnType<typeof createAdminClient>;
+  try { admin = createAdminClient(); } catch { return NextResponse.json({ error: "Server is missing SUPABASE_SERVICE_ROLE_KEY" }, { status: 500 }); }
   const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name } });
   if (error || !data.user) return NextResponse.json({ error: error?.message ?? "Could not create user" }, { status: 400 });
   const { error: pe } = await admin.from("profiles").update({ role, active: true, full_name }).eq("id", data.user.id);
@@ -33,10 +36,13 @@ export async function POST(req: Request) {
 
 const resetSchema = z.object({ id: z.string().uuid(), password: z.string().min(8, "Password must be at least 8 characters").max(72) });
 export async function PATCH(req: Request) {
+  if (missingEnv().length) return NextResponse.json({ error: "Server is not configured (missing Supabase environment variables)" }, { status: 503 });
   if (!(await requireSuperAdmin())) return NextResponse.json({ error: "Not allowed" }, { status: 403 });
   const parsed = resetSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
-  const { error } = await createAdminClient().auth.admin.updateUserById(parsed.data.id, { password: parsed.data.password });
+  let admin: ReturnType<typeof createAdminClient>;
+  try { admin = createAdminClient(); } catch { return NextResponse.json({ error: "Server is missing SUPABASE_SERVICE_ROLE_KEY" }, { status: 500 }); }
+  const { error } = await admin.auth.admin.updateUserById(parsed.data.id, { password: parsed.data.password });
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ ok: true });
 }

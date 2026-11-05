@@ -13,7 +13,8 @@ export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const admin = createAdminClient();
+  let admin: ReturnType<typeof createAdminClient>;
+  try { admin = createAdminClient(); } catch { return NextResponse.json({ error: "Server is missing SUPABASE_SERVICE_ROLE_KEY" }, { status: 500 }); }
   const ist = new Date(Date.now() + 5.5 * 3600e3).toISOString();
   const period = `${ist.slice(0, 7)}-01`;
   const gen = await admin.rpc("generate_monthly_invoices", { p_period: period });
