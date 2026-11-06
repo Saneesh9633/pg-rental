@@ -67,13 +67,13 @@ export function UiProvider({ children }: { children: React.ReactNode }) {
       {children}
       <div className="fixed bottom-4 right-4 left-4 sm:left-auto z-[100] flex flex-col gap-2 sm:w-96" role="status" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className={`rounded-lg px-4 py-3 text-sm shadow-lg border ${t.kind === "ok" ? "bg-emerald-50 border-emerald-200 text-emerald-800" : "bg-rose-50 border-rose-200 text-rose-800"}`}>{t.text}</div>
+          <div key={t.id} className={`rounded-2xl px-4 py-3 text-sm font-medium shadow-lift border ${t.kind === "ok" ? "bg-white border-emerald-200 text-emerald-800" : "bg-white border-rose-200 text-rose-800"}`}>{t.text}</div>
         ))}
       </div>
       {dlg && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-gray-900/40 p-4" role="alertdialog" aria-modal="true">
-          <div className="card w-full max-w-sm p-6">
-            <h3 className="font-semibold text-gray-900">{dlg.title}</h3>
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-gray-900/40 backdrop-blur-[3px] p-4" role="alertdialog" aria-modal="true">
+          <div className="card w-full max-w-sm p-7 shadow-lift">
+            <h3 className="font-bold text-gray-900 text-lg">{dlg.title}</h3>
             {dlg.message && <p className="text-sm text-gray-600 mt-2">{dlg.message}</p>}
             <div className="flex justify-end gap-2 mt-6">
               <button className="btn-secondary" onClick={() => close(false)}>Cancel</button>

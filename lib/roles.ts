@@ -11,15 +11,16 @@ export const PERMS = {
 export type Perm = keyof typeof PERMS;
 export const can = (role: Role | undefined, perm: Perm) => !!role && (PERMS[perm] as Role[]).includes(role);
 
-export const NAV: { href: string; label: string; icon: string; roles: Role[] }[] = [
-  { href: "/dashboard", label: "Dashboard", icon: "home", roles: ALL },
-  { href: "/dashboard/rooms", label: "Rooms & Beds", icon: "bed", roles: ALL },
-  { href: "/dashboard/tenants", label: "Tenants", icon: "users", roles: ALL },
-  { href: "/dashboard/pricing", label: "Rental Pricing", icon: "tag", roles: A },
-  { href: "/dashboard/billing", label: "Billing & Invoices", icon: "file", roles: ALL },
-  { href: "/dashboard/payments", label: "Payments", icon: "wallet", roles: ALL },
-  { href: "/dashboard/expenses", label: "Expenses", icon: "receipt", roles: F },
-  { href: "/dashboard/reports", label: "Reports", icon: "chart", roles: ALL },
-  { href: "/dashboard/users", label: "Users & Roles", icon: "shield", roles: A },
-  { href: "/dashboard/settings", label: "Settings", icon: "cog", roles: A },
+export type NavGroup = "Main menu" | "Manage" | "Account";
+export const NAV: { href: string; label: string; icon: string; roles: Role[]; group: NavGroup }[] = [
+  { href: "/dashboard", label: "Dashboard", icon: "home", roles: ALL, group: "Main menu" },
+  { href: "/dashboard/rooms", label: "Rooms & Beds", icon: "bed", roles: ALL, group: "Main menu" },
+  { href: "/dashboard/tenants", label: "Tenants", icon: "users", roles: ALL, group: "Main menu" },
+  { href: "/dashboard/billing", label: "Billing & Invoices", icon: "file", roles: ALL, group: "Main menu" },
+  { href: "/dashboard/payments", label: "Payments", icon: "wallet", roles: ALL, group: "Main menu" },
+  { href: "/dashboard/pricing", label: "Rental Pricing", icon: "tag", roles: A, group: "Manage" },
+  { href: "/dashboard/expenses", label: "Expenses", icon: "receipt", roles: F, group: "Manage" },
+  { href: "/dashboard/reports", label: "Reports", icon: "chart", roles: ALL, group: "Manage" },
+  { href: "/dashboard/users", label: "Users & Roles", icon: "shield", roles: A, group: "Account" },
+  { href: "/dashboard/settings", label: "Settings", icon: "cog", roles: A, group: "Account" },
 ];

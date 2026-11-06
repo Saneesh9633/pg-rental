@@ -19,12 +19,12 @@ export function emit(doc: Doc, filename: string, mode: "download" | "print") {
   window.open(doc.output("bloburl") as unknown as string, "_blank");
 }
 function letterhead(doc: Doc, pg: Settings, title: string, w: number) {
-  doc.setFillColor(79, 70, 229); doc.rect(0, 0, w, 3, "F");
+  doc.setFillColor(22, 122, 102); doc.rect(0, 0, w, 3, "F");
   doc.setTextColor(17, 24, 39); doc.setFont("helvetica", "bold"); doc.setFontSize(15); doc.text(pg.pg_name, 14, 14);
   doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(107, 114, 128);
   const lines = [pg.address, [pg.phone, pg.email].filter(Boolean).join("  |  ")].filter(Boolean);
   lines.forEach((l, i) => doc.text(l, 14, 19 + i * 4));
-  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(79, 70, 229); doc.text(title, w - 14, 14, { align: "right" });
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(22, 122, 102); doc.text(title, w - 14, 14, { align: "right" });
   doc.setDrawColor(229, 231, 235); doc.line(14, 28, w - 14, 28);
   doc.setTextColor(17, 24, 39);
 }
@@ -43,7 +43,7 @@ export async function receiptPdf(pg: Settings, p: PaymentRow, inv: InvoiceRow, p
   kv(doc, 14, 64, "Against invoice", `${inv.invoice_no} — ${monthLabel(inv.period)}`);
   autoTable(doc, {
     startY: 76, margin: { left: 14, right: 14 }, theme: "grid", styles: { fontSize: 9, cellPadding: 2.5 },
-    headStyles: { fillColor: [79, 70, 229] },
+    headStyles: { fillColor: [22, 122, 102] },
     head: [["Description", "Amount"]],
     body: [
       ["Invoice total", pdfInr(inv.total)],
@@ -67,7 +67,7 @@ export async function invoicePdf(pg: Settings, inv: InvoiceRow, items: InvoiceIt
   kv(doc, 14, 36, "Invoice No.", inv.invoice_no); kv(doc, 70, 36, "Billing month", monthLabel(inv.period)); kv(doc, 130, 36, "Due date", fmtDate(inv.due_date));
   kv(doc, 14, 50, "Billed to", inv.tenant_name); kv(doc, 70, 50, "Room / Bed", `${inv.room_no} / Bed ${inv.bed_no} (${cap(inv.sharing)})`); kv(doc, 130, 50, "Status", cap(inv.status));
   autoTable(doc, {
-    startY: 66, margin: { left: 14, right: 14 }, theme: "striped", styles: { fontSize: 9.5, cellPadding: 2.8 }, headStyles: { fillColor: [79, 70, 229] },
+    startY: 66, margin: { left: 14, right: 14 }, theme: "striped", styles: { fontSize: 9.5, cellPadding: 2.8 }, headStyles: { fillColor: [22, 122, 102] },
     head: [["#", "Description", "Type", "Amount"]],
     body: items.map((it, i) => [i + 1, it.description, cap(it.kind), pdfInr(it.amount)]),
     columnStyles: { 0: { cellWidth: 10 }, 3: { halign: "right" } },
@@ -91,7 +91,7 @@ export async function invoicePdf(pg: Settings, inv: InvoiceRow, items: InvoiceIt
     });
   }
   if (pg.upi_id && Number(inv.balance) > 0) {
-    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(79, 70, 229);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(22, 122, 102);
     doc.text(`Pay by UPI: ${pg.upi_id}`, 14, 280);
   }
   return doc;
@@ -105,7 +105,7 @@ export async function tablePdf(opts: { title: string; subtitle?: string; pg: Set
   const align: Record<number, { halign: "right" }> = {};
   (opts.numericCols ?? []).forEach((i) => (align[i] = { halign: "right" }));
   autoTable(doc, {
-    startY: 38, margin: { left: 14, right: 14 }, styles: { fontSize: 8.5, cellPadding: 2 }, headStyles: { fillColor: [79, 70, 229] }, columnStyles: align,
+    startY: 38, margin: { left: 14, right: 14 }, styles: { fontSize: 8.5, cellPadding: 2 }, headStyles: { fillColor: [22, 122, 102] }, columnStyles: align,
     head: [opts.columns], body: opts.rows.map((r) => r.map(String)),
     foot: opts.totals ? [opts.totals.map(String)] : undefined, footStyles: { fillColor: [243, 244, 246], textColor: [17, 24, 39], fontStyle: "bold" },
   });

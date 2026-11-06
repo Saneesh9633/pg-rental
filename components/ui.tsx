@@ -33,6 +33,7 @@ const ICONS: Record<string, string> = {
   swap: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4",
   door: "M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1",
   eye: "M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
+  arrow: "M7 17L17 7M9 7h8v8",
   alert: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z",
 };
 export function Icon({ name, className = "w-4 h-4" }: { name: keyof typeof ICONS | string; className?: string }) {
@@ -47,35 +48,48 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">{title}</h1>
-        {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+        <h1 className="text-2xl sm:text-[28px] leading-tight font-bold text-gray-900 tracking-tight">{title}</h1>
+        {subtitle && <p className="text-sm text-gray-500 mt-1.5">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
 
-export function Stat({ label, value, sub, tone = "default", icon }: { label: string; value: string | number; sub?: string; tone?: "default" | "good" | "warn" | "bad"; icon?: string }) {
-  const color = { default: "text-gray-900", good: "text-emerald-700", warn: "text-amber-700", bad: "text-rose-700" }[tone];
-  return (
-    <div className="card p-4 sm:p-5">
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wide">{label}</p>
-        {icon && <span className="text-gray-300"><Icon name={icon} className="w-4 h-4" /></span>}
+const TINTS = { white: "bg-white", mint: "bg-tint-mint", peach: "bg-tint-peach", lilac: "bg-tint-lilac", sky: "bg-tint-sky", butter: "bg-tint-butter", blush: "bg-tint-blush" } as const;
+export type Tint = keyof typeof TINTS;
+const TONE_TINT: Record<string, Tint> = { default: "white", good: "mint", warn: "butter", bad: "blush" };
+const TONE_INK = { default: "text-gray-900", good: "text-emerald-800", warn: "text-amber-800", bad: "text-rose-700" };
+
+/** KPI tile. `size="lg"` is the big pastel card with an arrow chip (dashboard hero row). */
+export function Stat({ label, value, sub, tone = "default", icon, tint, size = "md", href }: {
+  label: string; value: string | number; sub?: string; tone?: "default" | "good" | "warn" | "bad"; icon?: string; tint?: Tint; size?: "md" | "lg"; href?: string;
+}) {
+  const bg = TINTS[tint ?? TONE_TINT[tone]];
+  const big = size === "lg";
+  const body = (
+    <div className={`${bg} rounded-3xl ${big ? "p-5 sm:p-6 min-h-[142px]" : "p-4 sm:p-5"} shadow-card h-full flex flex-col ${href ? "transition-transform hover:-translate-y-0.5" : ""}`}>
+      <div className="flex items-start justify-between gap-2">
+        <p className={`${big ? "text-sm font-semibold text-gray-700" : "text-xs font-semibold text-gray-500"} leading-snug`}>{label}</p>
+        {big ? (
+          <span className="w-9 h-9 rounded-full bg-white/90 flex items-center justify-center text-gray-800 shrink-0"><Icon name={icon ?? "arrow"} className="w-4 h-4" /></span>
+        ) : icon ? (
+          <span className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center shrink-0"><Icon name={icon} className="w-4 h-4" /></span>
+        ) : null}
       </div>
-      <p className={`text-xl sm:text-2xl font-semibold mt-2 tabular-nums ${color}`}>{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+      <p className={`mt-auto pt-3 font-bold tabular-nums tracking-tight ${big ? "text-2xl sm:text-[28px]" : "text-xl sm:text-2xl"} ${TONE_INK[tone]}`}>{value}</p>
+      <p className="text-xs text-gray-500 mt-1 min-h-[1rem]">{sub ?? ""}</p>
     </div>
   );
+  return href ? <a href={href} className="block h-full">{body}</a> : body;
 }
 
 const TONES = {
-  green: "bg-emerald-50 text-emerald-700 ring-emerald-600/15", amber: "bg-amber-50 text-amber-700 ring-amber-600/20",
-  red: "bg-rose-50 text-rose-700 ring-rose-600/15", blue: "bg-sky-50 text-sky-700 ring-sky-600/15",
-  gray: "bg-gray-100 text-gray-600 ring-gray-500/10", indigo: "bg-indigo-50 text-indigo-700 ring-indigo-600/15",
+  green: "bg-emerald-50 text-emerald-700", amber: "bg-amber-50 text-amber-700", red: "bg-rose-50 text-rose-700",
+  blue: "bg-sky-50 text-sky-700", gray: "bg-gray-100 text-gray-600", indigo: "bg-brand-50 text-brand-700",
 };
 export function Badge({ tone = "gray", children }: { tone?: keyof typeof TONES; children: React.ReactNode }) {
-  return <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset whitespace-nowrap ${TONES[tone]}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${TONES[tone]}`}>{children}</span>;
 }
 const STATUS_TONE: Record<PaymentStatus, keyof typeof TONES> = { paid: "green", partial: "blue", pending: "amber", overdue: "red" };
 export const StatusBadge = ({ status }: { status: PaymentStatus }) => (
@@ -95,14 +109,14 @@ export function Modal({ open, title, onClose, children, footer, size = "md" }: {
   if (!open) return null;
   const w = { sm: "max-w-md", md: "max-w-xl", lg: "max-w-3xl", xl: "max-w-5xl" }[size];
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-gray-900/40 sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label={title}>
-      <div className={`bg-white w-full ${w} rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">{title}</h2>
-          <button onClick={onClose} className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100" aria-label="Close"><Icon name="x" className="w-5 h-5" /></button>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-gray-900/40 backdrop-blur-[3px] sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()} role="dialog" aria-modal="true" aria-label={title}>
+      <div className={`bg-white w-full ${w} rounded-t-3xl sm:rounded-3xl shadow-lift max-h-[92vh] flex flex-col`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h2 className="font-bold text-gray-900 text-lg tracking-tight">{title}</h2>
+          <button onClick={onClose} className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100" aria-label="Close"><Icon name="x" className="w-5 h-5" /></button>
         </div>
-        <div className="p-5 overflow-y-auto">{children}</div>
-        {footer && <div className="px-5 py-3 border-t border-gray-100 flex justify-end gap-2 bg-gray-50/60 rounded-b-2xl">{footer}</div>}
+        <div className="p-6 overflow-y-auto">{children}</div>
+        {footer && <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2 bg-gray-50/60 rounded-b-3xl">{footer}</div>}
       </div>
     </div>
   );
@@ -111,7 +125,7 @@ export function Modal({ open, title, onClose, children, footer, size = "md" }: {
 export function Field({ label, hint, error, children, className = "" }: { label: string; hint?: string; error?: string; children: React.ReactNode; className?: string }) {
   return (
     <label className={`block ${className}`}>
-      <span className="block text-sm font-medium text-gray-700 mb-1">{label}</span>
+      <span className="block text-[13px] font-semibold text-gray-700 mb-1.5">{label}</span>
       {children}
       {hint && !error && <span className="block text-xs text-gray-400 mt-1">{hint}</span>}
       {error && <span className="block text-xs text-rose-600 mt-1">{error}</span>}
@@ -142,24 +156,26 @@ export function Empty({ title, hint, action }: { title: string; hint?: string; a
 
 export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: T; label: string }[]; value: T; onChange: (t: T) => void }) {
   return (
-    <div className="flex gap-1 border-b border-gray-200 overflow-x-auto mb-5" role="tablist">
-      {tabs.map((t) => (
-        <button key={t.id} role="tab" aria-selected={value === t.id} onClick={() => onChange(t.id)}
-          className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${value === t.id ? "border-indigo-600 text-indigo-700" : "border-transparent text-gray-500 hover:text-gray-800"}`}>
-          {t.label}
-        </button>
-      ))}
+    <div className="mb-5 max-w-full overflow-x-auto pb-1">
+      <div className="inline-flex gap-1 bg-white rounded-full p-1 shadow-card" role="tablist">
+        {tabs.map((t) => (
+          <button key={t.id} role="tab" aria-selected={value === t.id} onClick={() => onChange(t.id)}
+            className={`px-4 py-2 text-sm font-semibold whitespace-nowrap rounded-full transition-colors ${value === t.id ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
 
 export function Avatar({ name, path, size = 36 }: { name: string; path?: string | null; size?: number }) {
   const url = useSignedUrl("tenant-documents", path);
-  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const initials = name.split(/\s+/).filter((w) => /^[A-Za-z]/.test(w)).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
   const style = { width: size, height: size, fontSize: size * 0.38 };
   // eslint-disable-next-line @next/next/no-img-element
   if (url) return <img src={url} alt={name} style={style} className="rounded-full object-cover shrink-0 bg-gray-100" />;
-  return <span style={style} className="rounded-full bg-indigo-100 text-indigo-700 font-semibold inline-flex items-center justify-center shrink-0">{initials}</span>;
+  return <span style={style} className="rounded-full bg-brand-100 text-brand-700 font-bold inline-flex items-center justify-center shrink-0">{initials}</span>;
 }
 
 export const Money = ({ v, className = "" }: { v: number | string; className?: string }) => <span className={`tabular-nums ${className}`}>{inr(v)}</span>;
@@ -167,14 +183,14 @@ export const Money = ({ v, className = "" }: { v: number | string; className?: s
 // ---- DataTable: search + sort + pagination -----------------------------------
 export interface Column<T> {
   key: string; header: string; render?: (row: T) => React.ReactNode; sort?: (row: T) => string | number | null;
-  align?: "right" | "left"; className?: string; hideOnMobile?: boolean;
+  align?: "right" | "left"; className?: string; hideOnMobile?: boolean; wrap?: boolean; sticky?: boolean;
 }
-export function DataTable<T>({ rows, columns, rowKey, searchText, searchPlaceholder = "Search…", onRowClick, pageSize = 15, toolbar, empty, initialSort, footer }: {
+export function DataTable<T>({ rows, columns, rowKey, searchText, searchPlaceholder = "Search…", onRowClick, pageSize = 15, toolbar, empty, initialSort, footer, initialQuery = "" }: {
   rows: T[]; columns: Column<T>[]; rowKey: (r: T) => string; searchText?: (r: T) => string; searchPlaceholder?: string;
   onRowClick?: (r: T) => void; pageSize?: number; toolbar?: React.ReactNode; empty?: React.ReactNode;
-  initialSort?: { key: string; dir: "asc" | "desc" }; footer?: React.ReactNode;
+  initialSort?: { key: string; dir: "asc" | "desc" }; footer?: React.ReactNode; initialQuery?: string;
 }) {
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
   const [sort, setSort] = useState(initialSort ?? null);
   const [page, setPage] = useState(0);
   useEffect(() => setPage(0), [q, rows.length]);
@@ -202,25 +218,25 @@ export function DataTable<T>({ rows, columns, rowKey, searchText, searchPlacehol
   return (
     <div className="card overflow-hidden">
       {(searchText || toolbar) && (
-        <div className="flex flex-col sm:flex-row gap-3 p-3 sm:p-4 border-b border-gray-100">
+        <div className="dt-toolbar flex flex-col lg:flex-row lg:items-center gap-3 p-4 sm:p-5">
           {searchText && (
-            <div className="relative sm:w-72">
+            <div className="relative sm:w-72 shrink-0">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><Icon name="search" /></span>
-              <input className="input pl-9" placeholder={searchPlaceholder} value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search" />
+              <input className="input pl-10 !rounded-full !bg-gray-50 !border-transparent" placeholder={searchPlaceholder} value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search" />
             </div>
           )}
-          {toolbar && <div className="flex flex-wrap items-center gap-2 sm:ml-auto">{toolbar}</div>}
+          {toolbar && <div className="flex flex-wrap items-center gap-2 lg:ml-auto">{toolbar}</div>}
         </div>
       )}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50/70 text-gray-500">
+          <thead className="text-gray-400 border-y border-gray-100 bg-gray-50/60">
             <tr>
               {columns.map((c) => {
                 const active = sort?.key === c.key;
                 return (
                   <th key={c.key} scope="col" aria-sort={active ? (sort!.dir === "asc" ? "ascending" : "descending") : undefined}
-                    className={`px-4 py-2.5 font-medium text-xs uppercase tracking-wide whitespace-nowrap ${c.align === "right" ? "text-right" : "text-left"} ${c.hideOnMobile ? "hidden md:table-cell" : ""}`}>
+                    className={`px-3 py-3 font-semibold text-[11px] uppercase tracking-wider whitespace-nowrap ${c.align === "right" ? "text-right" : "text-left"} ${c.hideOnMobile ? "hidden md:table-cell" : ""} ${c.sticky ? "sticky right-0 bg-gray-50 shadow-[-10px_0_10px_-10px_rgba(20,27,24,0.15)]" : ""}`}>
                     {c.sort ? (
                       <button className="inline-flex items-center gap-1 hover:text-gray-900 uppercase tracking-wide"
                         onClick={() => setSort(active ? (sort!.dir === "asc" ? { key: c.key, dir: "desc" } : null) : { key: c.key, dir: "asc" })}>
@@ -233,11 +249,11 @@ export function DataTable<T>({ rows, columns, rowKey, searchText, searchPlacehol
               })}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100/80">
             {slice.map((r) => (
-              <tr key={rowKey(r)} onClick={onRowClick ? () => onRowClick(r) : undefined} className={onRowClick ? "cursor-pointer hover:bg-indigo-50/40" : "hover:bg-gray-50/60"}>
+              <tr key={rowKey(r)} onClick={onRowClick ? () => onRowClick(r) : undefined} className={onRowClick ? "cursor-pointer hover:bg-brand-50/60 transition-colors" : "hover:bg-gray-50/60"}>
                 {columns.map((c) => (
-                  <td key={c.key} className={`px-4 py-3 ${c.align === "right" ? "text-right tabular-nums" : ""} ${c.hideOnMobile ? "hidden md:table-cell" : ""} ${c.className ?? ""}`}>
+                  <td key={c.key} className={`px-3 py-3.5 ${c.sticky ? "sticky right-0 bg-white shadow-[-10px_0_10px_-10px_rgba(20,27,24,0.15)]" : ""} ${c.wrap ? "" : "whitespace-nowrap"} ${c.align === "right" ? "text-right tabular-nums" : ""} ${c.hideOnMobile ? "hidden md:table-cell" : ""} ${c.className ?? ""}`}>
                     {c.render ? c.render(r) : String((r as Record<string, unknown>)[c.key] ?? "—")}
                   </td>
                 ))}

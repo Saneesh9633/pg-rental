@@ -44,7 +44,7 @@ export default function PaymentsPage() {
     { key: "bal", header: "Balance", align: "right", sort: (i) => Number(i.balance), render: (i) => <b>{inr(Math.max(Number(i.balance), 0))}</b> },
     { key: "due", header: "Due date", sort: (i) => i.due_date, render: (i) => fmtDate(i.due_date) },
     { key: "st", header: "Status", sort: (i) => i.status, render: (i) => <StatusBadge status={i.status} /> },
-    { key: "a", header: "", align: "right", render: (i) => can(me.role, "recordPayment") && Number(i.balance) > 0 ? <button className="btn-secondary !py-1 !px-2.5 whitespace-nowrap" onClick={() => setPaying(i)}>Record payment</button> : null },
+    { key: "a", header: "", align: "right", sticky: true, render: (i) => can(me.role, "recordPayment") && Number(i.balance) > 0 ? <button className="btn-secondary !py-1 !px-2.5 whitespace-nowrap" onClick={() => setPaying(i)}>Record payment</button> : null },
   ];
   const txCols: Column<PayTx>[] = [
     { key: "d", header: "Date", sort: (p) => p.paid_on, render: (p) => fmtDate(p.paid_on) },

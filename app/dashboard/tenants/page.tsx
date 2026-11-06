@@ -15,7 +15,7 @@ function TenantsInner() {
   const params = useSearchParams();
   const [open, setOpen] = useState(false);
   const [preset, setPreset] = useState<string | null>(null);
-  const [status, setStatus] = useState("active"); const [sharing, setSharing] = useState("");
+  const [status, setStatus] = useState(params.get("q") ? "" : "active"); const [sharing, setSharing] = useState("");
 
   useEffect(() => { const b = params.get("checkin"); if (b) { setPreset(b); setOpen(true); } }, [params]);
   const q = useQuery(async () => unwrap(await sb().from("v_tenant_current").select("*").order("full_name")) as unknown as TenantRow[], [open]);
@@ -41,7 +41,7 @@ function TenantsInner() {
       <PageHeader title="Tenants" subtitle={`${q.data.filter((t) => t.status === "active").length} staying · ${q.data.filter((t) => t.status !== "active").length} past tenants`}
         actions={can(me.role, "checkInOut") && <button className="btn-primary" onClick={() => { setPreset(null); setOpen(true); }}><Icon name="plus" />Check in tenant</button>} />
       <DataTable rows={rows} columns={cols} rowKey={(t) => t.id} searchText={(t) => `${t.full_name} ${t.phone} ${t.room_no ?? ""} ${t.email ?? ""}`} searchPlaceholder="Search name, phone, room…"
-        onRowClick={(t) => router.push(`/dashboard/tenants/${t.id}`)} initialSort={{ key: "name", dir: "asc" }}
+        onRowClick={(t) => router.push(`/dashboard/tenants/${t.id}`)} initialSort={{ key: "name", dir: "asc" }} initialQuery={params.get("q") ?? ""}
         toolbar={<>
           <select className="input !w-auto" value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Status"><option value="active">Currently staying</option><option value="checked_out">Past tenants</option><option value="">All</option></select>
           <select className="input !w-auto" value={sharing} onChange={(e) => setSharing(e.target.value)} aria-label="Sharing"><option value="">All sharing types</option><option value="single">Single</option><option value="double">Double</option><option value="triple">Triple</option></select>

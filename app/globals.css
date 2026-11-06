@@ -5,34 +5,40 @@
 @layer base {
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
-  :focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; }
+  body { @apply bg-canvas text-gray-900 font-sans; font-feature-settings: "cv11", "ss01"; }
+  :focus-visible { outline: 2px solid #24907A; outline-offset: 2px; }
+  ::selection { background: #B2DFD2; }
 }
 
 @layer components {
   .input {
-    @apply w-full rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white placeholder:text-gray-400
-           focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-300 disabled:bg-gray-50 disabled:text-gray-500;
+    @apply w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm bg-white placeholder:text-gray-400 text-gray-900
+           focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-brand-400 disabled:bg-gray-50 disabled:text-gray-500 transition-shadow;
   }
   select.input { @apply pr-8; }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium
-           px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap;
+    @apply inline-flex items-center justify-center gap-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold
+           px-5 py-2.5 rounded-full shadow-[0_8px_18px_-8px_rgba(22,122,102,0.7)] transition-all active:scale-[0.98]
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none whitespace-nowrap;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium
-           px-4 py-2 rounded-lg border border-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap;
+    @apply inline-flex items-center justify-center gap-1.5 bg-white hover:bg-gray-50 text-gray-800 text-sm font-semibold
+           px-5 py-2.5 rounded-full border border-gray-200 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap;
   }
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium
-           px-4 py-2 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap;
+    @apply inline-flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold
+           px-5 py-2.5 rounded-full transition-all active:scale-[0.98] disabled:opacity-50 whitespace-nowrap;
   }
-  .btn-ghost { @apply inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-2 py-1.5 rounded-md transition-colors; }
-  .card { @apply bg-white rounded-xl border border-gray-100 shadow-sm; }
-  .section-title { @apply text-sm font-semibold text-gray-900 mb-3; }
+  .btn-ghost { @apply inline-flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 px-2.5 py-1.5 rounded-full transition-colors; }
+  .card { @apply bg-white rounded-3xl shadow-card; }
+  .section-title { @apply text-[15px] font-bold text-gray-900 mb-3 tracking-tight; }
 }
+
+/* filter controls inside table toolbars are soft pills */
+.dt-toolbar select.input, .dt-toolbar input.input { border-radius: 9999px; background-color: #F8F7F3; border-color: transparent; padding-top: 0.55rem; padding-bottom: 0.55rem; }
 
 @media print {
   aside, header.topbar, .no-print { display: none !important; }
   main { padding: 0 !important; }
+  body { background: #fff; }
 }

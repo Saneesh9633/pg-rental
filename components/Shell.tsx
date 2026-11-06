@@ -4,14 +4,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui";
 import { ProfileProvider, UiProvider, sb } from "@/lib/hooks";
-import { NAV, ROLE_LABEL } from "@/lib/roles";
+import { NAV, ROLE_LABEL, type NavGroup } from "@/lib/roles";
 import type { Profile } from "@/types";
+
+const GROUPS: NavGroup[] = ["Main menu", "Manage", "Account"];
+const initials = (n: string) => n.split(/\s+/).filter((w) => /^[A-Za-z]/.test(w)).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
 
 export default function Shell({ profile, pgName, children }: { profile: Profile; pgName: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [q, setQ] = useState("");
   const links = NAV.filter((n) => n.roles.includes(profile.role));
 
   useEffect(() => setOpen(false), [pathname]);
@@ -30,30 +34,47 @@ export default function Shell({ profile, pgName, children }: { profile: Profile;
     router.refresh();
   }
   const isActive = (href: string) => (href === "/dashboard" ? pathname === href : pathname.startsWith(href));
+  const search = (e: React.FormEvent) => { e.preventDefault(); const v = q.trim(); router.push(v ? `/dashboard/tenants?q=${encodeURIComponent(v)}` : "/dashboard/tenants"); setQ(""); };
 
   const nav = (
     <>
-      <div className="px-5 h-16 flex items-center gap-3 border-b border-gray-100">
-        <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white"><Icon name="home" className="w-5 h-5" /></div>
+      <div className="px-6 pt-7 pb-5 flex items-center gap-3">
+        <div className="w-10 h-10 bg-brand-600 rounded-2xl flex items-center justify-center text-white shadow-[0_8px_18px_-8px_rgba(22,122,102,0.8)]"><Icon name="home" className="w-5 h-5" /></div>
         <div className="min-w-0">
-          <p className="font-semibold text-sm text-gray-900 truncate">{pgName}</p>
-          <p className="text-[11px] text-gray-400">PG Manager</p>
+          <p className="font-bold text-[15px] text-gray-900 truncate leading-tight">{pgName}</p>
+          <p className="text-[11px] text-gray-400 font-medium">PG Manager</p>
         </div>
       </div>
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="Main">
-        {links.map((l) => (
-          <Link key={l.href} href={l.href} aria-current={isActive(l.href) ? "page" : undefined}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive(l.href) ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}>
-            <Icon name={l.icon} className="w-[18px] h-[18px]" />{l.label}
-          </Link>
-        ))}
+      <nav className="flex-1 px-4 pb-4 overflow-y-auto" aria-label="Main">
+        {GROUPS.map((g) => {
+          const items = links.filter((l) => l.group === g);
+          if (!items.length) return null;
+          return (
+            <div key={g} className="mb-5">
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400">{g}</p>
+              <div className="space-y-1">
+                {items.map((l) => (
+                  <Link key={l.href} href={l.href} aria-current={isActive(l.href) ? "page" : undefined}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm transition-all ${isActive(l.href)
+                      ? "bg-brand-600 text-white font-semibold shadow-[0_10px_20px_-10px_rgba(22,122,102,0.9)]"
+                      : "text-gray-600 font-medium hover:bg-gray-100 hover:text-gray-900"}`}>
+                    <Icon name={l.icon} className="w-[18px] h-[18px]" />{l.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </nav>
-      <div className="px-3 pb-4 pt-3 border-t border-gray-100">
-        <div className="px-3 mb-2">
-          <p className="text-sm font-medium text-gray-800 truncate">{profile.full_name || profile.email}</p>
-          <p className="text-xs text-gray-400">{ROLE_LABEL[profile.role]}</p>
+      <div className="p-4">
+        <div className="rounded-2xl bg-gray-50 p-3 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-full bg-brand-100 text-brand-700 font-bold text-sm flex items-center justify-center shrink-0">{initials(profile.full_name || profile.email || "")}</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-900 truncate">{profile.full_name || profile.email}</p>
+            <p className="text-xs text-gray-500">{ROLE_LABEL[profile.role]}</p>
+          </div>
+          <button onClick={logout} className="p-2 rounded-full text-gray-500 hover:bg-white hover:text-gray-900" aria-label="Sign out" title="Sign out"><Icon name="logout" /></button>
         </div>
-        <button onClick={logout} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 w-full"><Icon name="logout" />Sign out</button>
       </div>
     </>
   );
@@ -61,28 +82,36 @@ export default function Shell({ profile, pgName, children }: { profile: Profile;
   return (
     <ProfileProvider value={profile}>
       <UiProvider>
-        <div className="min-h-screen lg:flex">
-          <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shrink-0 sticky top-0 h-screen">{nav}</aside>
+        <div className="min-h-screen lg:flex lg:gap-4 lg:p-4">
+          <aside className="hidden lg:flex w-[268px] bg-white rounded-4xl shadow-card flex-col shrink-0 sticky top-4 h-[calc(100vh-2rem)]">{nav}</aside>
 
           {open && (
             <div className="lg:hidden fixed inset-0 z-40 flex">
-              <div className="w-72 max-w-[85vw] bg-white flex flex-col shadow-xl">{nav}</div>
-              <button className="flex-1 bg-gray-900/40" aria-label="Close menu" onClick={() => setOpen(false)} />
+              <div className="w-[300px] max-w-[86vw] bg-white flex flex-col shadow-lift rounded-r-4xl">{nav}</div>
+              <button className="flex-1 bg-gray-900/40 backdrop-blur-[2px]" aria-label="Close menu" onClick={() => setOpen(false)} />
             </div>
           )}
 
-          <div className="flex-1 min-w-0 flex flex-col">
-            <header className="topbar h-14 lg:h-16 bg-white/80 backdrop-blur border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-30">
-              <button className="lg:hidden p-2 -ml-2 text-gray-600" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" className="w-6 h-6" /></button>
-              <span className="lg:hidden font-semibold text-sm truncate mx-2">{pgName}</span>
-              <div className="flex items-center gap-2 ml-auto">
-                <Link href="/dashboard/notifications" className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100" aria-label={`Notifications, ${unread} unread`}>
+          <div className="flex-1 min-w-0 flex flex-col px-4 pb-8 pt-3 sm:px-6 lg:px-2 lg:pt-1">
+            <header className="topbar flex items-center gap-3 mb-6 sm:mb-8">
+              <button className="lg:hidden w-11 h-11 rounded-full bg-white shadow-card flex items-center justify-center text-gray-700 shrink-0" onClick={() => setOpen(true)} aria-label="Open menu"><Icon name="menu" className="w-5 h-5" /></button>
+              <form onSubmit={search} className="relative flex-1 max-w-xl" role="search">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><Icon name="search" /></span>
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tenants…" aria-label="Search tenants"
+                  className="w-full h-11 rounded-full bg-white shadow-card pl-11 pr-4 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-300" />
+              </form>
+              <div className="ml-auto flex items-center gap-2 sm:gap-3 shrink-0">
+                <Link href="/dashboard/notifications" className="relative w-11 h-11 rounded-full bg-white shadow-card flex items-center justify-center text-gray-600 hover:text-gray-900" aria-label={`Notifications, ${unread} unread`}>
                   <Icon name="bell" className="w-5 h-5" />
-                  {unread > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-semibold flex items-center justify-center">{unread > 99 ? "99+" : unread}</span>}
+                  {unread > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-canvas">{unread > 99 ? "99+" : unread}</span>}
                 </Link>
+                <div className="hidden sm:flex items-center gap-2.5 h-11 pl-1.5 pr-4 rounded-full bg-white shadow-card">
+                  <span className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 font-bold text-xs flex items-center justify-center">{initials(profile.full_name || profile.email || "")}</span>
+                  <span className="text-sm font-semibold text-gray-800 max-w-[120px] truncate">{(profile.full_name || profile.email || "").split(" ")[0]}</span>
+                </div>
               </div>
             </header>
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1400px] w-full mx-auto">{children}</main>
+            <main className="flex-1 w-full max-w-[1400px] mx-auto">{children}</main>
           </div>
         </div>
       </UiProvider>

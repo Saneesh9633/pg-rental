@@ -49,7 +49,7 @@ export default function ExpensesPage() {
   const cols: Column<ExpenseRow>[] = [
     { key: "d", header: "Date", sort: (e) => e.expense_date, render: (e) => fmtDate(e.expense_date) },
     { key: "c", header: "Category", sort: (e) => e.category, render: (e) => <Badge tone="indigo">{catLabel(e.category)}</Badge> },
-    { key: "desc", header: "Description", render: (e) => <span>{e.description || "—"}{e.vendor && <span className="block text-xs text-gray-400">{e.vendor}</span>}</span> },
+    { key: "desc", header: "Description", wrap: true, className: "min-w-[200px]", render: (e) => <span>{e.description || "—"}{e.vendor && <span className="block text-xs text-gray-400">{e.vendor}</span>}</span> },
     { key: "a", header: "Amount", align: "right", sort: (e) => Number(e.amount), render: (e) => <b>{inr(e.amount)}</b> },
     { key: "r", header: "Receipt", render: (e) => (e.receipt_path ? <button className="btn-ghost" onClick={async () => { const u = await signedUrl("expense-receipts", e.receipt_path!); if (u) window.open(u, "_blank"); }}><Icon name="eye" />View</button> : <span className="text-gray-300">—</span>) },
     ...(canEdit ? [{ key: "act", header: "", align: "right" as const, render: (e: ExpenseRow) => (
